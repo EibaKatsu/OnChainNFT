@@ -41,8 +41,19 @@ git branch -M main
 https://github.com/HashLips/solidity_smart_contracts/blob/main/contracts/NFT_ON_CHAIN/NFT_START.sol
 からコピペ
 
+# Base64.sol
+https://github.com/HashLips/solidity_smart_contracts/blob/main/contracts/NFT_ON_CHAIN/Base64.sol
+からコピペ
+
 # openzeppelinをインストール
 npm install @openzeppelin/contracts
+
+# OnChainNFT.solにBase64をimport
+
+# 不要なコードを消す
+  maxMintAmount, revealed, notRevealedUri
+
+# constractorの引数を削除して直指定に
 
 # コンパイル
 npx hardhat compile

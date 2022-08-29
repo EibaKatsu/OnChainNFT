@@ -17,40 +17,23 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./Base64.sol";
 
-contract NFT is ERC721Enumerable, Ownable {
+contract OnChainNFT is ERC721Enumerable, Ownable {
   using Strings for uint256;
 
-  string baseURI;
-  string public baseExtension = ".json";
   uint256 public cost = 0.05 ether;
   uint256 public maxSupply = 10000;
-  uint256 public maxMintAmount = 20;
   bool public paused = false;
-  bool public revealed = false;
-  string public notRevealedUri;
+  string public encodePackedImage = "";
 
-  constructor(
-    string memory _name,
-    string memory _symbol,
-    string memory _initBaseURI,
-    string memory _initNotRevealedUri
-  ) ERC721(_name, _symbol) {
-    setBaseURI(_initBaseURI);
-    setNotRevealedURI(_initNotRevealedUri);
-  }
-
-  // internal
-  function _baseURI() internal view virtual override returns (string memory) {
-    return baseURI;
-  }
+  constructor() ERC721("On Chain NFT", "OCN") {}
 
   // public
   function mint(uint256 _mintAmount) public payable {
     uint256 supply = totalSupply();
     require(!paused);
     require(_mintAmount > 0);
-    require(_mintAmount <= maxMintAmount);
     require(supply + _mintAmount <= maxSupply);
 
     if (msg.sender != owner()) {
@@ -82,46 +65,33 @@ contract NFT is ERC721Enumerable, Ownable {
     override
     returns (string memory)
   {
-    require(
+    require(    
       _exists(tokenId),
       "ERC721Metadata: URI query for nonexistent token"
     );
-    
-    if(revealed == false) {
-        return notRevealedUri;
-    }
 
-    string memory currentBaseURI = _baseURI();
-    return bytes(currentBaseURI).length > 0
-        ? string(abi.encodePacked(currentBaseURI, tokenId.toString(), baseExtension))
-        : "";
+   return string(abi.encodePacked(
+     'data:application/json;base64,', Base64.encode(bytes(abi.encodePacked(
+       '{"name": "OnChainTest',
+     '", "description": "First test'
+     '", "image": "data:image/svg+xml+jpeg;base64,',
+     encodePackedImage,
+     '"}'
+     )))));
   }
 
-  //only owner
-  function reveal() public onlyOwner {
-      revealed = true;
-  }
+//   function buildImage() public returns(string memory) {
+//     return Base64.encode(bytes(encodePackedImage));
+//   }
   
   function setCost(uint256 _newCost) public onlyOwner {
     cost = _newCost;
   }
-
-  function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner {
-    maxMintAmount = _newmaxMintAmount;
+  
+  function setEncodePackedImage(string memory _image) public onlyOwner {
+    encodePackedImage = _image;
   }
   
-  function setNotRevealedURI(string memory _notRevealedURI) public onlyOwner {
-    notRevealedUri = _notRevealedURI;
-  }
-
-  function setBaseURI(string memory _newBaseURI) public onlyOwner {
-    baseURI = _newBaseURI;
-  }
-
-  function setBaseExtension(string memory _newBaseExtension) public onlyOwner {
-    baseExtension = _newBaseExtension;
-  }
-
   function pause(bool _state) public onlyOwner {
     paused = _state;
   }
@@ -130,8 +100,8 @@ contract NFT is ERC721Enumerable, Ownable {
     // This will pay HashLips 5% of the initial sale.
     // You can remove this if you want, or keep it in to support HashLips and his channel.
     // =============================================================================
-    (bool hs, ) = payable(0x943590A42C27D08e3744202c4Ae5eD55c2dE240D).call{value: address(this).balance * 5 / 100}("");
-    require(hs);
+    // (bool hs, ) = payable(0x943590A42C27D08e3744202c4Ae5eD55c2dE240D).call{value: address(this).balance * 5 / 100}("");
+    // require(hs);
     // =============================================================================
     
     // This will payout the owner 95% of the contract balance.
